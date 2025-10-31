@@ -127,19 +127,51 @@ class GoogleSheetsExtractor:
     def _update_user_data(self, row_data):
         try:
             email = row_data['email']
-            if not email:
+            sdt = row_data['sdt']
+            
+            if not email and not sdt:
+                print(f"   ⚠️  Thiếu cả email và SĐT, skip")
                 return False
             
-            # Tạo user_id từ email: chỉ lấy phần trước @
-            user_id = email.split('@')[0]
+            user_ref = None
+            user_doc = None
+            search_method = ""
             
-            # Lấy user document
-            user_ref = self.firebase.db.collection('users').document(user_id)
-            user_doc = user_ref.get()
+            # Bước 1: Thử tìm bằng email (username trước @)
+            if email:
+                user_id = email.split('@')[0]
+                user_ref = self.firebase.db.collection('users').document(user_id)
+                user_doc = user_ref.get()
+                
+                if user_doc.exists:
+                    search_method = f"email (user_id: {user_id})"
+                else:
+                    print(f"   ⚠️  Không tìm thấy bằng email: {user_id}")
             
-            if not user_doc.exists:
-                print(f"   ⚠️  User {email} không tồn tại (user_id: {user_id})")
+            # Bước 2: Nếu không tìm thấy bằng email, thử tìm bằng SĐT
+            if not user_doc or not user_doc.exists:
+                if sdt:
+                    # Normalize SĐT (xóa spaces)
+                    normalized_sdt = sdt.replace(' ', '')
+                    
+                    # Query tìm user có profile.phone = sdt
+                    users_query = self.firebase.db.collection('users').where('profile.phone', '==', normalized_sdt).limit(1).stream()
+                    
+                    users_list = list(users_query)
+                    if users_list:
+                        user_doc = users_list[0]
+                        user_ref = self.firebase.db.collection('users').document(user_doc.id)
+                        search_method = f"SĐT ({normalized_sdt})"
+                    else:
+                        print(f"   ⚠️  Không tìm thấy bằng SĐT: {normalized_sdt}")
+            
+            # Bước 3: Nếu cả 2 cách đều không tìm thấy → skip
+            if not user_doc or not user_doc.exists:
+                print(f"   ❌ Không tìm thấy user - Email: {email}, SĐT: {sdt} → SKIP")
                 return False
+            
+            # Tìm thấy user, tiếp tục update
+            print(f"   🔍 Tìm thấy bằng: {search_method}")
             
             user_data = user_doc.to_dict()
             
@@ -166,9 +198,9 @@ class GoogleSheetsExtractor:
             return True
             
         except Exception as e:
-            print(f"   Lỗi update user {row_data.get('email', 'Unknown')}: {e}")
+            print(f"   ❌ Lỗi update user - Email: {row_data.get('email', 'N/A')}, SĐT: {row_data.get('sdt', 'N/A')}: {e}")
             return False
-
+    
 # Test script
 if __name__ == "__main__":
     SHEET_ID = "1k6cy4Gb0VT7UtNYujRupP16V8MJF03bphoi-JIWPpqE"

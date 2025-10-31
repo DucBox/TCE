@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import json
 from datetime import datetime
@@ -8,15 +7,14 @@ class UserFeedbackService:
     def __init__(self):
         self.firebase = FirebaseManager()
     
-    def authenticate_user(self, email, password):
+    def authenticate_user(self, username, password):
         """
-        Xác thực user bằng email và password (SĐT)
+        Xác thực user bằng username (phần trước @) và password (SĐT)
         Returns: user_data nếu thành công, None nếu thất bại
         """
         try:
-            # Normalize email
-            normalized_email = email.replace(' ', '')
-            user_id = normalized_email.replace('@', '_').replace('.', '_').replace(' ', '_')
+            # Normalize username: xóa spaces
+            user_id = username.replace(' ', '')
             
             # Lấy user document
             user_ref = self.firebase.db.collection('users').document(user_id)
@@ -37,15 +35,14 @@ class UserFeedbackService:
             print(f"Lỗi authenticate: {e}")
             return None
     
-    def get_user_feedbacks(self, email):
+    def get_user_feedbacks(self, username):
         """
-        Lấy tất cả feedbacks của user theo email
+        Lấy tất cả feedbacks của user theo username
         Returns: List feedbacks sorted by thời gian mới nhất
         """
         try:
-            # Normalize email
-            normalized_email = email.replace(' ', '')
-            user_id = normalized_email.replace('@', '_').replace('.', '_').replace(' ', '_')
+            # Normalize username: xóa spaces
+            user_id = username.replace(' ', '')
             
             # Lấy user document
             user_ref = self.firebase.db.collection('users').document(user_id)
@@ -81,11 +78,11 @@ class UserFeedbackService:
         except:
             return datetime.min
     
-    def get_user_profile(self, email):
+    def get_user_profile(self, username):
         """Lấy thông tin profile của user"""
         try:
-            normalized_email = email.replace(' ', '')
-            user_id = normalized_email.replace('@', '_').replace('.', '_').replace(' ', '_')
+            # Normalize username: xóa spaces
+            user_id = username.replace(' ', '')
             
             user_ref = self.firebase.db.collection('users').document(user_id)
             user_doc = user_ref.get()

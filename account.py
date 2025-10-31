@@ -57,7 +57,6 @@ class AccountCreator:
             "thiennhi05062005@gmail.com",
             "llinhchile734@gmail.com",
             "nngocmaikhanh3008@gmail.com",
-            "chloepng108@gmail.com",
             "tocduong2k10@gmail.com",
             "truongngocanh.20.12.2008@gmail.com",
             "duychien226@gmail.com",
@@ -117,7 +116,6 @@ class AccountCreator:
             "0329577330",
             "0949846569",
             "0941801866",
-            "0912371764",
             "0393865840",
             "0814765879",
             "0389341912",
@@ -126,6 +124,7 @@ class AccountCreator:
             "0339316605",
             "0982035205",
             "0987871209",
+            "395389586",
             "0937966629",
             "0949856183",
             "0908907628",
@@ -145,25 +144,60 @@ class AccountCreator:
             "0975538468",
             "0347833484",
             "0325106387",
-            "0847433266"
+            "0847433266",
+            "0912371764",
         ]
-
+        print(f"Debug: Tổng số email ban đầu: {len(emails)}")
+        print(f"Debug: Tổng số phone ban đầu: {len(phones)}")
         
+        # Track duplicates
         seen_emails = set()
         seen_phones = set()
+        duplicate_emails = []
+        duplicate_phones = []
+        
         filtered_emails = []
         filtered_phones = []
         
-        for email, phone in zip(emails, phones):
-            if email not in seen_emails and phone not in seen_phones:
+        print("\n=== KIỂM TRA DUPLICATE ===")
+        
+        for i, (email, phone) in enumerate(zip(emails, phones), 1):
+            is_dup_email = email in seen_emails
+            is_dup_phone = phone in seen_phones
+            
+            # Print duplicate info
+            if is_dup_email or is_dup_phone:
+                reason = []
+                if is_dup_email:
+                    reason.append(f"Email trùng")
+                    duplicate_emails.append(email)
+                if is_dup_phone:
+                    reason.append(f"Phone trùng")
+                    duplicate_phones.append(phone)
+                
+                print(f"❌ [{i}] {email} | {phone} - {' & '.join(reason)}")
+            
+            # Only add if both are unique
+            if not is_dup_email and not is_dup_phone:
                 filtered_emails.append(email)
                 filtered_phones.append(phone)
                 seen_emails.add(email)
                 seen_phones.add(phone)
         
+        print(f"\n=== TỔNG KẾT DUPLICATE ===")
+        print(f"Số email trùng: {len(duplicate_emails)}")
+        print(f"Số phone trùng: {len(duplicate_phones)}")
+        
+        # Check for emails without phones
+        if len(emails) > len(phones):
+            print(f"\n⚠️  CÓ {len(emails) - len(phones)} EMAIL KHÔNG CÓ PHONE:")
+            for i in range(len(phones), len(emails)):
+                print(f"   - {emails[i]}")
+        
         emails = filtered_emails
         phones = filtered_phones
         
+        print(f"\nDebug: Tổng số phone sau khi lọc duplicate: {len(phones)}")
         print(f"Debug: Tổng số email sau khi lọc duplicate: {len(emails)}")
         
         roles = ["admin"] + ["user"] * (len(emails) - 1)
@@ -172,6 +206,7 @@ class AccountCreator:
         created_count = 0
         failed_count = 0
         
+        print("\n=== BẮT ĐẦU TẠO TÀI KHOẢN ===")
         for i, (email, phone, role) in enumerate(zip(emails, phones, roles)):
             try:
                 self._create_single_account(email, phone, role)
@@ -181,8 +216,8 @@ class AccountCreator:
                 failed_count += 1
                 print(f"❌ [{i+1}/{len(emails)}] {email}: {e}")
         
-        print(f"Debug: Số tài khoản tạo thành công: {created_count}")
-        print(f"\n📊 Kết quả: {created_count} thành công, {failed_count} thất bại")
+        print(f"\nDebug: Số tài khoản tạo thành công: {created_count}")
+        print(f"📊 Kết quả: {created_count} thành công, {failed_count} thất bại")
         
     def _create_single_account(self, email, phone, role):
         # Tạo user_id: chỉ lấy phần trước @ cho tất cả user
