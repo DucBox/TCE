@@ -31,8 +31,10 @@ class GoogleSheetsExtractor:
             raise Exception(f"Lỗi khởi tạo Google Sheets API: {e}")
     
     def _normalize_email(self, email):
-        """Xóa tất cả space trong email để match với rule tạo account"""
-        return email.replace(' ', '') if email else ''
+        """Normalize email: chỉ xóa spaces"""
+        if not email:
+            return ''
+        return email.replace(' ', '')
     
     def test_connection(self, sheet_id):
         try:
@@ -57,7 +59,7 @@ class GoogleSheetsExtractor:
             # Lấy tên tab đầu tiên
             sheet_metadata = self.service.spreadsheets().get(spreadsheetId=sheet_id).execute()
             first_sheet_name = sheet_metadata['sheets'][0]['properties']['title']
-            range_name = f"'{first_sheet_name}'!A:H"  # A đến H
+            range_name = f"'{first_sheet_name}'!A:H"
             
             print(f"Đang đọc từ tab: {first_sheet_name}")
             
@@ -87,30 +89,37 @@ class GoogleSheetsExtractor:
                     while len(row) < 8:
                         row.append('')
                     
+                    original_email = row[4]
+                    normalized_email = self._normalize_email(original_email)
+                    
                     row_data = {
                         'dau_thoi_gian': row[0],
                         'ho_ten': row[1],
                         'lop': row[2],
                         'sdt': row[3],
-                        'email': self._normalize_email(row[4]),  # Normalize email
+                        'email': normalized_email,
                         'link_bai_lam': row[5],
-                        'status': row[6],  # Cột G
-                        'feedback': row[7]  # Cột H
+                        'status': row[6],
+                        'feedback': row[7]
                     }
+                    
+                    # Log nếu có spaces bị xóa
+                    if original_email != normalized_email:
+                        print(f"   Email normalized: '{original_email}' → '{normalized_email}'")
                     
                     # Update vào Firebase
                     if self._update_user_data(row_data):
                         updated_count += 1
-                        print(f"[{i}/{len(data_rows)}] {row_data['email']}")
+                        print(f"✅ [{i}/{len(data_rows)}] {row_data['email']}")
                     else:
                         failed_count += 1
-                        print(f"[{i}/{len(data_rows)}] {row_data['email']} - FAILED")
+                        print(f"❌ [{i}/{len(data_rows)}] {row_data['email']} - FAILED")
                     
                 except Exception as e:
                     failed_count += 1
-                    print(f"[{i}/{len(data_rows)}] Lỗi parse dòng: {e}")
+                    print(f"❌ [{i}/{len(data_rows)}] Lỗi parse dòng: {e}")
             
-            print(f"\nKết quả: {updated_count} thành công, {failed_count} thất bại")
+            print(f"\n📊 Kết quả: {updated_count} thành công, {failed_count} thất bại")
             
         except Exception as e:
             print(f"Lỗi extract data: {e}")
@@ -121,15 +130,15 @@ class GoogleSheetsExtractor:
             if not email:
                 return False
             
-            # Tạo user_id từ email (same rule với tạo account)
-            user_id = email.replace('@', '_').replace('.', '_').replace(' ', '_')
+            # Tạo user_id từ email: chỉ lấy phần trước @
+            user_id = email.split('@')[0]
             
             # Lấy user document
             user_ref = self.firebase.db.collection('users').document(user_id)
             user_doc = user_ref.get()
             
             if not user_doc.exists:
-                print(f"   User {email} không tồn tại")
+                print(f"   ⚠️  User {email} không tồn tại (user_id: {user_id})")
                 return False
             
             user_data = user_doc.to_dict()
@@ -162,7 +171,7 @@ class GoogleSheetsExtractor:
 
 # Test script
 if __name__ == "__main__":
-    SHEET_ID = "1T6fH1S4JkYq1JuC497hdoDqKmMoC-5X1yjzg6fEIHP0"
+    SHEET_ID = "1k6cy4Gb0VT7UtNYujRupP16V8MJF03bphoi-JIWPpqE"
     
     try:
         extractor = GoogleSheetsExtractor()

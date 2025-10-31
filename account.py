@@ -30,26 +30,143 @@ class AccountCreator:
     
     def create_accounts_from_data(self):
         # Data từ bạn cung cấp
-        phones = [
-            "0945513426", "0826785488", "0329391581", "0865 597 229", "0862457811",
-            "0949846569", "0986736382", "0868110492", "0328181208", "0389341912",
-            "0911125209", "0986472737", "037 9438658", "0942405985", "0973748443",
-            "0812533222", "0325106387", "0325106387"
-        ]
-        
         emails = [
-            "vietthanh.tce@gmail.com", "nguyenthiyenchi241@gmail.com", 
-            "jenniethu12345@gmail.com", "uyennguyenphuong280409@gmail.com", "hel",
-            "llinhchile734@gmail.com", "thucquyenvu0520@gmail.com", 
-            "ngvietchinh0503@gmail.com", "thquynh2008@gmail.com", "duychien226@gmail.com",
-            "thiloan862005@gmail.com", "havy18092009@gmail.com", "tocduong2k10@gmail.com",
-            "chillzy14iu11@gmail.com", "hngthaor@gmail.com", "quyendoduc2005ls@gmail.com",
-            "khanhlinh86840@gmail.com"
+            "vietthanh.tce@gmail.com",
+            "jenniethu12345@gmail.com",
+            "anhthanhvip459@gmail.com",
+            "nguyentruongmanh170203@gmail.com",
+            "uyennguyenphuong280409@gmail.com",
+            "xchautran@gmail.com",
+            "ngvietchinh0503@gmail.com",
+            "chillzy14iu11@gmail.com",
+            "ngtanquilong@gmail.com",
+            "hngthaor@gmail.com",
+            "maianhdangiu1212008@gmail.com",
+            "nguyenthiyenchi@gmail.com",
+            "thiloan862005@gmail.com",
+            "helium150209@gmail.com",
+            "toanledng2019@gmail.com",
+            "thquynh2008@gmail.com",
+            "thucquyenvu0520@gmail.com",
+            "nguyenpl20082008@gmail.com",
+            "nguyenthibichnguyet08061979@gmail.com",
+            "nguyenngochongphuong92@gmail.com",
+            "yokai.learning@gmail.com",
+            "quyendoduc2005ls@gmail.com",
+            "quynhanhchristina@gmail.com",
+            "thiennhi05062005@gmail.com",
+            "llinhchile734@gmail.com",
+            "nngocmaikhanh3008@gmail.com",
+            "chloepng108@gmail.com",
+            "tocduong2k10@gmail.com",
+            "truongngocanh.20.12.2008@gmail.com",
+            "duychien226@gmail.com",
+            "lanhkhoa267@gmail.com",
+            "triduclee09@gmail.com",
+            "doviet2000las@gmail.com",
+            "thuhuongcutentg@gmail.com",
+            "nguyenmanhbang714@gmail.com",
+            "duahau.02.10.2004@gmail.com",
+            "lethilananhqn@gmail.com",
+            "ngocloveke115@gmail.com",
+            "tranphantumy@gmail.com",
+            "truhotboy12@gmail.com",
+            "tranminhphuong020610@gmail.com",
+            "trngocdiep129@gmail.com",
+            "trnhai@gmail.com",
+            "thanhhoatrinhthi@gmail.com",
+            "daothixuan5505@gmail.com",
+            "nghuyenn17@gmail.com",
+            "capduongso1@gmail.com",
+            "phamhuonggiang918@gmail.com",
+            "phamthaihoa2k6@gmail.com",
+            "phamlephuonglinh12345@gmail.com",
+            "havy18092009@gmail.com",
+            "trangcherry9903@gmail.com",
+            "thuphuong12.3.1998@gmail.com",
+            "vietdung8a13009@gmail.com",
+            "khanhlinh86840@gmail.com",
+            "truonglamgiahuy29042013@gmail.com",
+            "minhphuong9631@gmail.com"
         ]
+
+        phones = [
+            "0945513426",
+            "0329391581",
+            "0766507383",
+            "0971884627",
+            "0865597229",
+            "0942387699",
+            "0868110492",
+            "0942405985",
+            "0352605493",
+            "0973748443",
+            "0374605910",
+            "0826785488",
+            "0911125209",
+            "0862457811",
+            "0356770624",
+            "0328181208",
+            "0986736382",
+            "0981567781",
+            "0373579209",
+            "0974249642",
+            "0385480246",
+            "0812533222",
+            "0852598527",
+            "0329577330",
+            "0949846569",
+            "0941801866",
+            "0912371764",
+            "0393865840",
+            "0814765879",
+            "0389341912",
+            "0869157480",
+            "0942621034",
+            "0339316605",
+            "0982035205",
+            "0987871209",
+            "0937966629",
+            "0949856183",
+            "0908907628",
+            "0328259562",
+            "0816023181",
+            "0837158688",
+            "0123456789",
+            "0971629004",
+            "0387185505",
+            "0832950866",
+            "0379438658",
+            "0969319805",
+            "0385583236",
+            "0392684757",
+            "0986472737",
+            "0967678510",
+            "0975538468",
+            "0347833484",
+            "0325106387",
+            "0847433266"
+        ]
+
+        
+        seen_emails = set()
+        seen_phones = set()
+        filtered_emails = []
+        filtered_phones = []
+        
+        for email, phone in zip(emails, phones):
+            if email not in seen_emails and phone not in seen_phones:
+                filtered_emails.append(email)
+                filtered_phones.append(phone)
+                seen_emails.add(email)
+                seen_phones.add(phone)
+        
+        emails = filtered_emails
+        phones = filtered_phones
+        
+        print(f"Debug: Tổng số email sau khi lọc duplicate: {len(emails)}")
         
         roles = ["admin"] + ["user"] * (len(emails) - 1)
-        
-        # Clean phone numbers (remove spaces)
         phones = [phone.replace(" ", "") for phone in phones]
         
         created_count = 0
@@ -60,16 +177,16 @@ class AccountCreator:
                 self._create_single_account(email, phone, role)
                 created_count += 1
                 print(f"✅ [{i+1}/{len(emails)}] {email} ({role})")
-                
             except Exception as e:
                 failed_count += 1
                 print(f"❌ [{i+1}/{len(emails)}] {email}: {e}")
         
+        print(f"Debug: Số tài khoản tạo thành công: {created_count}")
         print(f"\n📊 Kết quả: {created_count} thành công, {failed_count} thất bại")
-    
+        
     def _create_single_account(self, email, phone, role):
-        # Tạo user_id từ email
-        user_id = email.replace('@', '_').replace('.', '_').replace(' ', '_')
+        # Tạo user_id: chỉ lấy phần trước @ cho tất cả user
+        user_id = email.split('@')[0]
         
         account_data = {
             'email': email,
